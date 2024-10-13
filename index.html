@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Random Meal Generator provides you with a surprise meal recipe every time you click the button.">
+    <meta name="keywords" content="meal, recipe, random, food, cooking">
+    <title>Random Meal Generator</title>
+    <link href="https://fonts.googleapis.com/css?family=Muli&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Random Meal Generator</h1>
+            <p>Feeling hungry? Get a random meal by clicking below.</p>
+            <button id="get_meal" class="button-primary" aria-label="Get a random meal">Get Meal 🍽️</button>
+        </header>
+        <section id="meal" class="meal-container" aria-live="polite"></section>
+    </div>
+
+    <style>
+        :root {
+            --primary-color: #007BFF;
+            --secondary-color: #0056b3;
+            --background-color: #f4f4f9;
+            --text-color: #333;
+            --border-color: #001F61;
+            --highlight-color: #FF7500;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--background-color);
+            font-family: 'Muli', sans-serif;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .button-primary {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s ease, transform 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .button-primary:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .meal-container {
+            display: grid;
+            grid-template-areas: 
+                "image info"
+                "instructions instructions"
+                "video video";
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .meal-image {
+            grid-area: image;
+            text-align: center;
+        }
+
+        .meal-image img {
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .meal-info {
+            grid-area: info;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .meal-info h4 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .meal-info p {
+            color: #666;
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .meal-info ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .meal-info ul li {
+            background: var(--background-color);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .meal-instructions {
+            grid-area: instructions;
+            text-align: left;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .meal-instructions h5 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .meal-instructions p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .meal-video {
+            grid-area: video;
+            margin-top: 20px;
+            width: 100%;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .meal-video iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .meal-container {
+                grid-template-areas: 
+                    "image"
+                    "info"
+                    "instructions"
+                    "video";
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
+        }
+    </style>
+
+    <script>
+        const mealContainer = document.getElementById('meal');
+        const fetchMeal = async () => {
+            try {
+                const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
+                const data = await response.json();
+                createMeal(data.meals[0]);
+            } catch (error) {
+                console.error('Error fetching meal:', error);
+                mealContainer.innerHTML = `<p>Sorry, we couldn't fetch a meal at this time. Please try again later.</p>`;
+            }
+        };
+
+        const getIngredients = (meal) => {
+            const ingredients = [];
+            for (let i = 1; i <= 20; i++) {
+                if (meal[`strIngredient${i}`]) {
+                    ingredients.push(`${meal[`strIngredient${i}`]} - ${meal[`strMeasure${i}`]}`);
+                } else {
+                    break;
+                }
+            }
+            return ingredients;
+        };
+
+        const createMeal = (meal) => {
+            const ingredients = getIngredients(meal);
+
+            const newInnerHTML = `
+                <div class="meal-image">
+                    <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+                </div>
+                <div class="meal-info">
+                    <h4>${meal.strMeal}</h4>
+                    ${meal.strCategory ? `<p><strong>Category:</strong> ${meal.strCategory}</p>` : ''}
+                    ${meal.strArea ? `<p><strong>Area:</strong> ${meal.strArea}</p>` : ''}
+                    ${meal.strTags ? `<p><strong>Tags:</strong> ${meal.strTags.split(',').join(', ')}</p>` : ''}
+                    <h5>Ingredients:</h5>
+                    <ul>
+                        ${ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="meal-instructions">
+                    <h5>Instructions:</h5>
+                    <p>${meal.strInstructions}</p>
+                </div>
+                <div class="meal-video">
+                    ${meal.strYoutube ? `
+                    <iframe src="https://www.youtube.com/embed/${meal.strYoutube.slice(-11)}" title="YouTube video"></iframe>
+                    ` : ''}
+                </div>
+            `;
+            
+            mealContainer.innerHTML = newInnerHTML;
+        };
+
+        document.getElementById('get_meal').addEventListener('click', fetchMeal);
+    </script>
+</body>
+</html>
